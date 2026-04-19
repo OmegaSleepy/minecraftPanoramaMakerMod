@@ -8,6 +8,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 @EventBusSubscriber
@@ -79,9 +81,22 @@ public class PanoramaHandler {
         Minecraft mc = Minecraft.getInstance();
         PanoramaCommand.Pos pos = queue.get(currentPosIndex);
 
+        // 1. Create the folder path strings
         String folderName = String.format("panorama_%d_%d_%d", (int)pos.x(), (int)pos.y(), (int)pos.z());
         String fileName = folderName + "/side_" + currentFacing + ".png";
 
+        // 2. Ensure the directory exists
+        try {
+            Path screenshotFolder = mc.gameDirectory.toPath().resolve("screenshots").resolve(folderName);
+            if (!Files.exists(screenshotFolder)) {
+                Files.createDirectories(screenshotFolder);
+            }
+        } catch (Exception e) {
+            // Log the error or notify the player if the folder creation fails
+            e.printStackTrace();
+        }
+
+        // 3. Now grab the screenshot
         Screenshot.grab(mc.gameDirectory, fileName, mc.getMainRenderTarget(), (msg) -> {});
 
         // Logic to move to the next side or next coordinate
@@ -103,4 +118,6 @@ public class PanoramaHandler {
             }
         }
     }
+
+
 }
